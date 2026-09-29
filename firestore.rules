@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // المنتجات والإعدادات: الجميع يقرأ، والكتابة مفتوحة مؤقتاً من لوحة التحكم
+    // (بدون تسجيل دخول). بدّلها لاحقاً لـ request.auth != null بعد ما تفعّل
+    // Firebase Authentication (انظر README) لحماية أفضل.
+    match /products/{id} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /shop/{id} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // الطلبات: الزبون ينشئ طلباً فقط.
+    // القراءة والتعديل والحذف مفتوحة مؤقتاً باش تشتغل لوحة التحكم (تغيير الحالة،
+    // الأرشفة، الحذف) — بدّلها لاحقاً لـ request.auth != null بعد ما تفعّل
+    // Firebase Authentication (انظر README).
+    match /orders/{id} {
+      allow create: if request.resource.data.keys().hasAll(['customer','phone','wilayaCode','total'])
+                    && request.resource.data.customer is string
+                    && request.resource.data.customer.size() > 2
+                    && request.resource.data.total is number
+                    && request.resource.data.total > 0;
+      allow read: if true;
+      allow update: if true;
+      allow delete: if true;
+    }
+  }
+}
